@@ -1,0 +1,562 @@
+[
+  {
+      "id": "05612c0fa82cfdea",
+      "type": "tab",
+      "label": "Fluxo 1",
+      "disabled": false,
+      "info": "",
+      "env": []
+  },
+  {
+      "id": "f7927c6bc7cf7edc",
+      "type": "postgresql",
+      "z": "05612c0fa82cfdea",
+      "name": "Buscar apostas sobre as partidas finalizadas",
+      "query": "SELECT * FROM bets\nWHERE id_partida = $id_partida;",
+      "postgreSQLConfig": "1251550e75985b59",
+      "split": false,
+      "rowsPerMsg": 1,
+      "outputs": 1,
+      "x": 1350,
+      "y": 240,
+      "wires": [
+          [
+              "1d40569c0154374a",
+              "61c1bb752b0c94c7"
+          ]
+      ]
+  },
+  {
+      "id": "61c1bb752b0c94c7",
+      "type": "function",
+      "z": "05612c0fa82cfdea",
+      "name": "Calculo bônus",
+      "func": "// msg.payload = array de bets dessa partida\n// msg.gols_mandante, msg.gols_visitante, msg.id_mandante, msg.id_visitante já vêm no msg\n\nconst golsMandante = msg.gols_mandante;\nconst golsVisitante = msg.gols_visitante;\nconst idMandante = msg.id_mandante;\nconst idVisitante = msg.id_visitante;\n\n// Descobre o vencedor: id do time, ou null se empate\nlet idTimeVencedor = null;\nif (golsMandante > golsVisitante) {\n    idTimeVencedor = idMandante;\n} else if (golsVisitante > golsMandante) {\n    idTimeVencedor = idVisitante;\n}\n// se golsMandante === golsVisitante, continua null (empate)\n\nconst bets = msg.payload;\n\n// Normaliza null/undefined pra comparar igual\nconst apostaBateComVencedor = (bet) => {\n    const apostaEmpate = (bet.id_time_apostado === null || bet.id_time_apostado === undefined);\n    const foiEmpate = (idTimeVencedor === null);\n    if (apostaEmpate) return foiEmpate;\n    return bet.id_time_apostado === idTimeVencedor;\n};\n\n// Separa vencedores e perdedores\nconst vencedores = bets.filter(apostaBateComVencedor);\nconst perdedores = bets.filter(b => !apostaBateComVencedor(b));\n\nconst poolVencedor = vencedores.reduce((soma, b) => soma + Number(b.valor_apostado), 0);\nconst poolPerdedor = perdedores.reduce((soma, b) => soma + Number(b.valor_apostado), 0);\n\nconst betsAtualizadas = bets.map(bet => {\n    const acertou = apostaBateComVencedor(bet);\n    let bonusDinheiro = 0;\n\n    if (acertou) {\n        const proporcao = poolVencedor > 0 ? (Number(bet.valor_apostado) / poolVencedor) : 0;\n        const ganhoDoPoolPerdedor = proporcao * poolPerdedor;\n        bonusDinheiro = Number(bet.valor_apostado) + ganhoDoPoolPerdedor;\n    }\n\n    return {\n        ...bet,\n        acertou,\n        bonus_dinheiro: Number(bonusDinheiro.toFixed(2))\n    };\n});\n\nmsg.payload = betsAtualizadas;\nmsg.id_time_vencedor = idTimeVencedor; \nreturn msg;",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 1680,
+      "y": 240,
+      "wires": [
+          [
+              "7a1444d92521acb4",
+              "44008161fecf24de",
+              "f7f6c51a732cc1c5"
+          ]
+      ]
+  },
+  {
+      "id": "566fdfb76f4f7f26",
+      "type": "function",
+      "z": "05612c0fa82cfdea",
+      "name": "Montar query",
+      "func": "// Salva os gols pra usar no cálculo do resultado 1X2 depois\nmsg.gols_mandante  = msg.payload.gols_mandante;\nmsg.gols_visitante = msg.payload.gols_visitante;\nmsg.id_mandante = msg.payload.mandante;\nmsg.id_visitante = msg.payload.visitante;\n\nmsg.queryParameters = {\n    id_partida: msg.payload.id\n};\n\nreturn msg;",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 990,
+      "y": 240,
+      "wires": [
+          [
+              "f7927c6bc7cf7edc"
+          ]
+      ]
+  },
+  {
+      "id": "7a1444d92521acb4",
+      "type": "split",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "splt": "\\n",
+      "spltType": "str",
+      "arraySplt": 1,
+      "arraySpltType": "len",
+      "stream": false,
+      "addname": "",
+      "property": "payload",
+      "x": 1930,
+      "y": 240,
+      "wires": [
+          [
+              "c571455e52332e0b",
+              "fd0b75cd0cb71814"
+          ]
+      ]
+  },
+  {
+      "id": "ebd98cabb8b7fd4a",
+      "type": "postgresql",
+      "z": "05612c0fa82cfdea",
+      "name": "Atualiza cada bet com resultados",
+      "query": "UPDATE bets \nSET acertou = $acertou, bonus_dinheiro = $bonus_dinheiro \nWHERE id = $id;\n",
+      "postgreSQLConfig": "1251550e75985b59",
+      "split": false,
+      "rowsPerMsg": 1,
+      "outputs": 1,
+      "x": 2520,
+      "y": 240,
+      "wires": [
+          []
+      ]
+  },
+  {
+      "id": "c571455e52332e0b",
+      "type": "change",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "rules": [
+          {
+              "t": "move",
+              "p": "payload",
+              "pt": "msg",
+              "to": "queryParameters",
+              "tot": "msg"
+          }
+      ],
+      "action": "",
+      "property": "",
+      "from": "",
+      "to": "",
+      "reg": false,
+      "x": 2190,
+      "y": 240,
+      "wires": [
+          [
+              "ebd98cabb8b7fd4a"
+          ]
+      ]
+  },
+  {
+      "id": "0ebdefe3e170b746",
+      "type": "inject",
+      "z": "05612c0fa82cfdea",
+      "name": "Trigger de inicio com repetição",
+      "props": [
+          {
+              "p": "payload"
+          },
+          {
+              "p": "topic",
+              "vt": "str"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "",
+      "payloadType": "date",
+      "x": 170,
+      "y": 240,
+      "wires": [
+          [
+              "e0e01b67395e326c"
+          ]
+      ]
+  },
+  {
+      "id": "e0e01b67395e326c",
+      "type": "postgresql",
+      "z": "05612c0fa82cfdea",
+      "name": "Buscar partidas finalizadas",
+      "query": "SELECT id, mandante, visitante, gols_mandante, gols_visitante\nFROM partidas\nWHERE status = 'finalizada'\nand bonus_calculado = false\n",
+      "postgreSQLConfig": "1251550e75985b59",
+      "split": false,
+      "rowsPerMsg": 1,
+      "outputs": 1,
+      "x": 500,
+      "y": 240,
+      "wires": [
+          [
+              "b9c83e27fb8eb119",
+              "082a80a913f85190"
+          ]
+      ]
+  },
+  {
+      "id": "b9c83e27fb8eb119",
+      "type": "split",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "splt": "\\n",
+      "spltType": "str",
+      "arraySplt": 1,
+      "arraySpltType": "len",
+      "stream": false,
+      "addname": "",
+      "property": "payload",
+      "x": 770,
+      "y": 240,
+      "wires": [
+          [
+              "acfc01451864f4b0",
+              "566fdfb76f4f7f26",
+              "0e5d5ebaae5d51b4"
+          ]
+      ]
+  },
+  {
+      "id": "44008161fecf24de",
+      "type": "function",
+      "z": "05612c0fa82cfdea",
+      "name": "Calcula bônus que cada cliente teve por partida",
+      "func": "const bets = msg.payload;\n\n// Agrupa por id_cliente, somando o bonus_dinheiro de cada um\nconst totaisPorCliente = {};\n\nbets.forEach(bet => {\n    const idCliente = bet.id_cliente;\n    const bonus = Number(bet.bonus_dinheiro);\n\n    if (!totaisPorCliente[idCliente]) {\n        totaisPorCliente[idCliente] = 0;\n    }\n    totaisPorCliente[idCliente] += bonus;\n});\n\n// Transforma o objeto agrupado num array de { id_cliente, bonus_total }\nconst bonusPorCliente = Object.keys(totaisPorCliente).map(idCliente => ({\n    id_cliente: Number(idCliente),\n    bonus_total: Number(totaisPorCliente[idCliente].toFixed(2))\n}));\n\nmsg.payload = bonusPorCliente;\nreturn msg;",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 2000,
+      "y": 380,
+      "wires": [
+          [
+              "ea13532f6021f0f8",
+              "3aa3ac53e4bc2a25"
+          ]
+      ]
+  },
+  {
+      "id": "ea13532f6021f0f8",
+      "type": "join",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "mode": "auto",
+      "build": "array",
+      "property": "payload",
+      "propertyType": "msg",
+      "key": "topic",
+      "joiner": "\\n",
+      "joinerType": "str",
+      "useparts": true,
+      "accumulate": false,
+      "timeout": "",
+      "count": "",
+      "reduceRight": false,
+      "reduceExp": "",
+      "reduceInit": "",
+      "reduceInitType": "",
+      "reduceFixup": "",
+      "x": 2330,
+      "y": 380,
+      "wires": [
+          [
+              "b62af96de086f477",
+              "af41905947f8a22d"
+          ]
+      ]
+  },
+  {
+      "id": "b62af96de086f477",
+      "type": "function",
+      "z": "05612c0fa82cfdea",
+      "name": "Calcula bônus que cada cliente teve juntando todas as partidas",
+      "func": "const arrayDeArrays = msg.payload;\n\n// achata: transforma array de arrays num array só\nconst todosOsBonus = arrayDeArrays.flat();\n\n// agrupa por id_cliente, somando bonus_total entre todas as partidas\nconst totaisPorCliente = {};\n\ntodosOsBonus.forEach(item => {\n    const idCliente = item.id_cliente;\n    const bonus = Number(item.bonus_total);\n\n    if (!totaisPorCliente[idCliente]) {\n        totaisPorCliente[idCliente] = 0;\n    }\n    totaisPorCliente[idCliente] += bonus;\n});\n\nconst bonusGeral = Object.keys(totaisPorCliente).map(idCliente => ({\n    id_cliente: Number(idCliente),\n    bonus_total: Number(totaisPorCliente[idCliente].toFixed(2))\n}));\n\nmsg.payload = bonusGeral;\nreturn msg;",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 2670,
+      "y": 380,
+      "wires": [
+          [
+              "ec313d6fe34cad0a",
+              "fe1dfd45e3438f9d"
+          ]
+      ]
+  },
+  {
+      "id": "ec313d6fe34cad0a",
+      "type": "split",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "splt": "\\n",
+      "spltType": "str",
+      "arraySplt": 1,
+      "arraySpltType": "len",
+      "stream": false,
+      "addname": "",
+      "property": "payload",
+      "x": 3030,
+      "y": 380,
+      "wires": [
+          [
+              "04a5c34c00b6c774",
+              "f7c6a119e847f01e"
+          ]
+      ]
+  },
+  {
+      "id": "04a5c34c00b6c774",
+      "type": "change",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "rules": [
+          {
+              "t": "move",
+              "p": "payload",
+              "pt": "msg",
+              "to": "queryParameters",
+              "tot": "msg"
+          }
+      ],
+      "action": "",
+      "property": "",
+      "from": "",
+      "to": "",
+      "reg": false,
+      "x": 3210,
+      "y": 380,
+      "wires": [
+          [
+              "1d017ac562fb3460"
+          ]
+      ]
+  },
+  {
+      "id": "1d017ac562fb3460",
+      "type": "postgresql",
+      "z": "05612c0fa82cfdea",
+      "name": "Atualiza bônus geral de cada cliente",
+      "query": "UPDATE vinculo_copo_cliente\nSET bonus_total = bonus_total + $bonus_total\nWHERE id_cliente = $id_cliente;",
+      "postgreSQLConfig": "1251550e75985b59",
+      "split": false,
+      "rowsPerMsg": 1,
+      "outputs": 1,
+      "x": 3550,
+      "y": 380,
+      "wires": [
+          []
+      ]
+  },
+  {
+      "id": "8f3c769523eb02b9",
+      "type": "postgresql",
+      "z": "05612c0fa82cfdea",
+      "name": "Marca as partidas finalizadas como calculadas",
+      "query": "UPDATE partidas\nSET bonus_calculado = True\nWHERE id = $id;",
+      "postgreSQLConfig": "1251550e75985b59",
+      "split": false,
+      "rowsPerMsg": 1,
+      "outputs": 1,
+      "x": 1260,
+      "y": 420,
+      "wires": [
+          []
+      ]
+  },
+  {
+      "id": "acfc01451864f4b0",
+      "type": "change",
+      "z": "05612c0fa82cfdea",
+      "name": "",
+      "rules": [
+          {
+              "t": "move",
+              "p": "payload",
+              "pt": "msg",
+              "to": "queryParameters",
+              "tot": "msg"
+          }
+      ],
+      "action": "",
+      "property": "",
+      "from": "",
+      "to": "",
+      "reg": false,
+      "x": 870,
+      "y": 420,
+      "wires": [
+          [
+              "8f3c769523eb02b9"
+          ]
+      ]
+  },
+  {
+      "id": "082a80a913f85190",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 1",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 620,
+      "y": 460,
+      "wires": []
+  },
+  {
+      "id": "1d40569c0154374a",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 2",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 1580,
+      "y": 120,
+      "wires": []
+  },
+  {
+      "id": "f7f6c51a732cc1c5",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 3",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 1840,
+      "y": 140,
+      "wires": []
+  },
+  {
+      "id": "fd0b75cd0cb71814",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 4",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 2100,
+      "y": 100,
+      "wires": []
+  },
+  {
+      "id": "3aa3ac53e4bc2a25",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 5",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 2240,
+      "y": 500,
+      "wires": []
+  },
+  {
+      "id": "af41905947f8a22d",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 6",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 2500,
+      "y": 500,
+      "wires": []
+  },
+  {
+      "id": "fe1dfd45e3438f9d",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 7",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 2980,
+      "y": 520,
+      "wires": []
+  },
+  {
+      "id": "f7c6a119e847f01e",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 8",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 3240,
+      "y": 540,
+      "wires": []
+  },
+  {
+      "id": "0e5d5ebaae5d51b4",
+      "type": "debug",
+      "z": "05612c0fa82cfdea",
+      "name": "debug 9",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 860,
+      "y": 120,
+      "wires": []
+  },
+  {
+      "id": "1251550e75985b59",
+      "type": "postgreSQLConfig",
+      "name": "PostgreSQL",
+      "host": "postgresql.janks.dev.br",
+      "hostFieldType": "str",
+      "port": "5432",
+      "portFieldType": "num",
+      "database": "projeto_b",
+      "databaseFieldType": "str",
+      "ssl": "true",
+      "sslFieldType": "bool",
+      "applicationName": "",
+      "applicationNameType": "str",
+      "max": "10",
+      "maxFieldType": "num",
+      "idle": "1000",
+      "idleFieldType": "num",
+      "connectionTimeout": "10000",
+      "connectionTimeoutFieldType": "num",
+      "user": "iot",
+      "userFieldType": "str",
+      "password": "pepcon-garton",
+      "passwordFieldType": "str"
+  }
+]
