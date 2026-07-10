@@ -86,10 +86,3 @@ Dashboards (Grafana) disponibilizam visualização em tempo real de:
 | Persistência | Banco de dados (PostgreSQL) |
 | Resultados esportivos | API externa + aplicação Web para inserção manual |
 | Visualização | Dashboards Grafana |
-
-## 📌 Próximos Passos / Melhorias Futuras
-
-- [ ] Documentar o esquemático completo da PCB (EasyEDA) e lista de componentes (BOM).
-- [ ] Detalhar os tópicos MQTT utilizados (nomenclatura e payloads).
-- [ ] Especificar o schema do banco de dados (tabelas de clientes, apostas, consumo).
-- [ ] Adicionar instruções de instalação/deploy do Node-RED e dos dashboards.
