@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 import certifi
 
 # --- Config API/Banco ---
-API_KEY = "e2872af56f808cbac9be0ad1fadca6f7"
+API_KEY = ""
 CONFIG_BANCO = {
     "host": "postgresql.janks.dev.br",
     "port": 5432,
