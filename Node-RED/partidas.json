@@ -1,0 +1,383 @@
+[
+    {
+        "id": "3554be93cbe76d06",
+        "type": "tab",
+        "label": "Fluxo 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2bbc52270cbbefe9",
+        "type": "mqtt in",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "topic": "partidas/atualizada",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "fa7923ade7c363e8",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 300,
+        "wires": [
+            [
+                "250d2415e31b79ce",
+                "31239e39c76fab19"
+            ]
+        ]
+    },
+    {
+        "id": "90281246d76f31e2",
+        "type": "template",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "{\n \"content\": \"Partida!\\n{{partidas.mandante_nome}} {{partidas.gols_mandante}} x {{partidas.gols_visitante}} {{partidas.visitante_nome}}\\nData: {{{partidas.data}}}\\nStatus: {{partidas.status}}\",\n \"chatId\": \"{{payload.chat_id}}\",\n \"type\": \"message\"\n}",
+        "output": "json",
+        "x": 1000,
+        "y": 480,
+        "wires": [
+            [
+                "d43b402b224f8d4d",
+                "55cd078053b7b86c"
+            ]
+        ]
+    },
+    {
+        "id": "d43b402b224f8d4d",
+        "type": "telegram sender",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "bot": "d219092c74c1efdf",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1270,
+        "y": 480,
+        "wires": [
+            [
+                "af8e8b46e4e2aa2c"
+            ]
+        ]
+    },
+    {
+        "id": "250d2415e31b79ce",
+        "type": "change",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "rules": [
+            {
+                "t": "move",
+                "p": "payload",
+                "pt": "msg",
+                "to": "partidas",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{    \"mandante_id\": partidas.mandante_id,    \"visitante_id\": partidas.visitante_id }",
+                "tot": "jsonata"
+            },
+            {
+                "t": "move",
+                "p": "payload",
+                "pt": "msg",
+                "to": "queryParameters",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 300,
+        "wires": [
+            [
+                "4d81de552fe4337c",
+                "b812971e1b959f33"
+            ]
+        ]
+    },
+    {
+        "id": "4d81de552fe4337c",
+        "type": "postgresql",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "query": "SELECT DISTINCT c.chat_id, c.nome_completo\nFROM bets b\nJOIN clientes c ON c.id = b.id_cliente\nWHERE (b.id_time_apostado = $mandante_id\n    OR b.id_time_apostado = $visitante_id)\n  AND c.chat_id IS NOT null;",
+        "postgreSQLConfig": "1251550e75985b59",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "6f6b45d973f3de88",
+                "b8939a597b5bda5c"
+            ]
+        ]
+    },
+    {
+        "id": "6f6b45d973f3de88",
+        "type": "split",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "property": "payload",
+        "x": 790,
+        "y": 480,
+        "wires": [
+            [
+                "90281246d76f31e2",
+                "ba25a74292dab353"
+            ]
+        ]
+    },
+    {
+        "id": "31239e39c76fab19",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 340,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "b812971e1b959f33",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "b8939a597b5bda5c",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "ba25a74292dab353",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "55cd078053b7b86c",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 8",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1080,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "af8e8b46e4e2aa2c",
+        "type": "debug",
+        "z": "3554be93cbe76d06",
+        "name": "debug 9",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1320,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "18ef2bff737ba352",
+        "type": "inject",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"acao\":\"acorda\"}",
+        "payloadType": "json",
+        "x": 240,
+        "y": 680,
+        "wires": [
+            [
+                "e55a566ee543bbf6"
+            ]
+        ]
+    },
+    {
+        "id": "e55a566ee543bbf6",
+        "type": "mqtt out",
+        "z": "3554be93cbe76d06",
+        "name": "",
+        "topic": "partidas/inject",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "fa7923ade7c363e8",
+        "x": 480,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "fa7923ade7c363e8",
+        "type": "mqtt-broker",
+        "name": "MQTT",
+        "broker": "mqtt.janks.dev.br",
+        "port": "8883",
+        "tls": "",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "d219092c74c1efdf",
+        "type": "telegram bot",
+        "botname": "IOT bot da Lu",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "1251550e75985b59",
+        "type": "postgreSQLConfig",
+        "name": "PostgreSQL",
+        "host": "postgresql.janks.dev.br",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "projeto_b",
+        "databaseFieldType": "str",
+        "ssl": "true",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": "10",
+        "maxFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "iot",
+        "userFieldType": "str",
+        "password": "pepcon-garton",
+        "passwordFieldType": "str"
+    }
+]
