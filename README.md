@@ -53,28 +53,15 @@ Placa de circuito desenvolvida em **EasyEDA**, projetada e impressa sob medida p
 
 ## 📊 Dashboards
 
-Dashboards (Grafana) disponibilizam visualização em tempo real de:
+Dashboards em Grafana, com filtros por jogo e por cliente, exibindo em tempo real:
 
-- **Ranking de acertos** — classificação dos participantes do bolão conforme desempenho nas apostas.
-- **Ranking de consumo** — volume/quantidade de bebidas consumidas por cliente.
+Taxa de acerto geral — percentual de acertos considerando todas as apostas do cliente/grupo.
+Taxa de acerto por jogo — percentual de acerto filtrado para uma partida específica.
+Quantidade acumulada por cliente — nome do cliente, número de acertos e saldo de bônus acumulado (R$).
+Total de apostas em cada resultado — detalhes da partida (data, status) e quantidade de apostas registradas para mandante, empate e visitante.
+Quantidade apostada — valor total apostado (R$) em cada resultado possível (mandante, empate, visitante) e o total geral apostado na partida.
+Ranking de clientes por bônus acumulado — classificação geral dos participantes pelo saldo de bônus acumulado no bolão.
 
-## 🗂️ Arquitetura Resumida
-
-```
-[Cliente] --RFID--> [Torneira / ESP32]
-                         |
-                    (sensores: fluxo, IR, RFID)
-                         |
-                       MQTT
-                         |
-         +---------------+----------------+
-         |                                |
-   [Node-RED: lógica do bolão]     [Banco de Dados]
-         |                                |
-   [API de resultados esportivos]   [Dashboards Grafana]
-         |
-   [App Web: inserção manual de resultados]
-```
 
 ## 🛠️ Stack Tecnológica
 
