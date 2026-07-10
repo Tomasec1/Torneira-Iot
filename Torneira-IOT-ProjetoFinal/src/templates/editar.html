@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Partida #{{ partida.id }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Editar Partida #{{ partida.id }}</h1>
+
+    <form action="/editar" method="POST">
+      <input type="hidden" name="id" value="{{ partida.id }}">
+
+      <h2>Dados da Partida</h2>
+
+      <p>
+        <label>Mandante</label>
+        <select name="mandante" required>
+          {% for time in times %}
+          <option value="{{ time.id_time }}" {% if time.id_time == partida.mandante %}selected{% endif %}>
+            {{ time.nome }}
+          </option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label>Visitante</label>
+        <select name="visitante" required>
+          {% for time in times %}
+          <option value="{{ time.id_time }}" {% if time.id_time == partida.visitante %}selected{% endif %}>
+            {{ time.nome }}
+          </option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label>Data e hora</label>
+        <input type="datetime-local" name="data_hora"
+               value="{{ partida.data | data_local('%Y-%m-%dT%H:%M') if partida.data else '' }}" required>
+      </p>
+
+      <h2>Status e Resultado</h2>
+
+      <p>
+        <label>Status</label>
+        <select name="status">
+          <option value="agendada"     {% if partida.status == "agendada" %}selected{% endif %}>Agendada</option>
+          <option value="em_andamento" {% if partida.status == "em_andamento" %}selected{% endif %}>Em andamento</option>
+          <option value="finalizada"   {% if partida.status == "finalizada" %}selected{% endif %}>Finalizada</option>
+        </select>
+      </p>
+      <p>
+        <label>Gols Mandante</label>
+        <input type="number" name="gols_mandante" min="0" value="{{ partida.gols_mandante }}">
+      </p>
+      <p>
+        <label>Gols Visitante</label>
+        <input type="number" name="gols_visitante" min="0" value="{{ partida.gols_visitante }}">
+      </p>
+
+      <input type="submit" value="Salvar">
+    </form>
+
+    <div class="page-footer">
+      <a class="btn btn-outline" href="/partidas">&#8592; Voltar para lista</a>
+    </div>
+  </div>
+</body>
+</html>
