@@ -4,7 +4,7 @@
 
 | Nome | Matrícula |
 |---|---|
-| Rafael Castro | [matrícula] |
+| Rafael Castro | 2211104 |
 | Luísa | [matrícula] |
 | Tomás | [matrícula] |
 | Henrique | [matrícula] |
@@ -100,27 +100,6 @@ Dashboards em Grafana (queries em `SQL-Dashboard/queries_sql_bolao.sql`), com fi
 - **Quantidade apostada** — valor total apostado (R$) em cada resultado possível (mandante, empate, visitante) e o total geral apostado na partida.
 - **Ranking de clientes por bônus acumulado** e **ranking de clientes por total de acertos** — top 5 participantes.
 
-## 🗂️ Estrutura do Projeto
-
-```
-Torneira-Iot/
-├── src/
-│   ├── torneira.cpp              # Firmware do ESP32-S3 (máquina de estados, display, RFID, fluxo, MQTT)
-│   ├── certificados.h            # Certificado TLS usado na conexão MQTT segura
-│   ├── main.py                   # Aplicação Flask (cadastro/edição/listagem de partidas)
-│   ├── monitor_copa.py           # Serviço de monitoramento de placares via API-Football
-│   ├── static/style.css          # Estilos da aplicação Web
-│   └── templates/                # Páginas HTML (partidas, cadastrar, editar)
-├── Node-RED/
-│   ├── torneira.json             # Flow: config, validação de RFID e registro de consumo
-│   └── calculo_bolao.json        # Flow: cálculo parimutuel do bolão e atualização de bônus
-├── SQL-Dashboard/
-│   └── queries_sql_bolao.sql     # Queries usadas nos painéis do Grafana
-├── platformio.ini                # Configuração de build/upload do firmware (PlatformIO)
-├── partitions.csv                # Tabela de partições do ESP32-S3 (LittleFS)
-└── requirements.txt              # Dependências Python da aplicação Web e do monitor
-```
-
 ## 🛠️ Stack Tecnológica
 
 | Camada | Tecnologia |
@@ -133,20 +112,3 @@ Torneira-Iot/
 | Persistência | PostgreSQL |
 | Visualização | Dashboards Grafana |
 
-## ▶️ Como Rodar
-
-**Aplicação Web e monitor (Python)**
-
-```bash
-pip install -r requirements.txt
-python src/main.py            # aplicação Flask (http://localhost:5000)
-python src/monitor_copa.py    # serviço de monitoramento de placares
-```
-
-**Firmware (PlatformIO)**
-
-```bash
-pio run -e torneira -t upload
-```
-
-> As credenciais de MQTT, banco de dados e API externa estão hardcoded nos arquivos-fonte para fins do projeto acadêmico; em um ambiente de produção, devem ser movidas para variáveis de ambiente/secrets.
