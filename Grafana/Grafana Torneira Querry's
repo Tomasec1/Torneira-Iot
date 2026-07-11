@@ -1,0 +1,40 @@
+/////////////////// Consumo por tipo de bebida ao longo do tempo ///////////////////////////////
+
+
+SELECT
+  $__timeGroup(cb.created_at, $__interval) AS time,
+  t.bebidas AS bebida,
+  SUM(cb.quantidade_ml) AS quantidade_ml
+FROM consumo_bebidas cb
+JOIN torneira t ON t.id = cb.id_bebida
+WHERE $__timeFilter(cb.created_at)
+  AND cb.quantidade_ml > 0
+GROUP BY 1, 2
+ORDER BY 1, 2;
+
+
+/////////////////////// Consumo total de uma pessoa ////////////////////////////////////
+
+SELECT
+  $__timeGroupAlias(cb.created_at, $__interval),
+  SUM(cb.quantidade_ml) AS "mL consumidos"
+FROM consumo_bebidas cb
+JOIN vinculo_copo_cliente v ON v.id = cb.vinculo_copo_cliente
+JOIN clientes c ON c.id = v.id_cliente
+WHERE $__timeFilter(cb.created_at)
+  AND c.id = $Clientes
+  AND cb.quantidade_ml > 0
+GROUP BY 1
+ORDER BY 1;
+
+/////////////////////// Quantidade em mL por tipo de bebida ///////////////////////
+
+SELECT
+  t.bebidas AS bebida,
+  SUM(cb.quantidade_ml) AS quantidade_ml
+FROM consumo_bebidas cb
+JOIN torneira t ON t.id = cb.id_bebida
+WHERE $__timeFilter(cb.created_at)
+  AND cb.quantidade_ml > 0
+GROUP BY t.bebidas
+ORDER BY SUM(cb.quantidade_ml) DESC;
