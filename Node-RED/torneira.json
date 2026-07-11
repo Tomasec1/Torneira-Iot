@@ -1,680 +1,855 @@
 [
-  {
-      "id": "ffaa1f7d0c3ffdfc",
-      "type": "tab",
-      "label": "Torneira integrada",
-      "disabled": false,
-      "info": "Fluxos MQTT + PostgreSQL para torneira/dispenser"
-  },
-  {
-      "id": "ef98989e2d7b3eac",
-      "type": "mqtt in",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Config IN",
-      "topic": "torneira/config/in",
-      "qos": "0",
-      "datatype": "json",
-      "broker": "b92ab025a2e6578a",
-      "nl": false,
-      "rap": true,
-      "rh": 0,
-      "inputs": 0,
-      "x": 120,
-      "y": 100,
-      "wires": [
-          [
-              "8ef463d57e3042d6"
-          ]
-      ]
-  },
-  {
-      "id": "8ef463d57e3042d6",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Mover id_torneira",
-      "rules": [
-          {
-              "t": "set",
-              "p": "queryParameters.id_torneira",
-              "pt": "msg",
-              "to": "payload.id_torneira",
-              "tot": "msg"
-          }
-      ],
-      "x": 330,
-      "y": 100,
-      "wires": [
-          [
-              "24c59f9d76ef19d0"
-          ]
-      ]
-  },
-  {
-      "id": "24c59f9d76ef19d0",
-      "type": "postgresql",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Buscar dados da torneira",
-      "query": "SELECT\n  id AS id_torneira,\n  bebidas AS bebida,\n  preco AS preco_litro,\n  link\nFROM torneira\nWHERE id = $id_torneira;",
-      "postgreSQLConfig": "29d1cbb4d2da9490",
-      "split": false,
-      "rowsPerMsg": 1,
-      "outputs": 1,
-      "x": 570,
-      "y": 100,
-      "wires": [
-          [
-              "f6a37a972135e9b4",
-              "0d174e6ccada76ee"
-          ]
-      ]
-  },
-  {
-      "id": "f6a37a972135e9b4",
-      "type": "switch",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Encontrou torneira?",
-      "property": "payload",
-      "propertyType": "msg",
-      "rules": [
-          {
-              "t": "empty"
-          },
-          {
-              "t": "nempty"
-          }
-      ],
-      "checkall": "true",
-      "repair": false,
-      "outputs": 2,
-      "x": 810,
-      "y": 100,
-      "wires": [
-          [
-              "a8b46a7780d50019"
-          ],
-          [
-              "6fc3857013574c78"
-          ]
-      ]
-  },
-  {
-      "id": "a8b46a7780d50019",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Config não encontrada",
-      "rules": [
-          {
-              "t": "set",
-              "p": "payload",
-              "pt": "msg",
-              "to": "{\"encontrado\": false, \"id_torneira\": 0, \"bebida\": \"\", \"preco_litro\": 0, \"link\": \"\"}",
-              "tot": "json"
-          }
-      ],
-      "x": 1060,
-      "y": 70,
-      "wires": [
-          [
-              "c60fae206ec525be"
-          ]
-      ]
-  },
-  {
-      "id": "6fc3857013574c78",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Montar config OUT",
-      "rules": [
-          {
-              "t": "set",
-              "p": "payload",
-              "pt": "msg",
-              "to": "{\t\"encontrado\": true,\t\"id_torneira\": $exists(payload[0]) ? payload[0].id_torneira : payload.id_torneira,\t\"bebida\": $exists(payload[0]) ? payload[0].bebida : payload.bebida,\t\"preco_litro\": $number($exists(payload[0]) ? payload[0].preco_litro : payload.preco_litro),\t\"link\": $exists(payload[0]) ? payload[0].link : payload.link}",
-              "tot": "jsonata"
-          }
-      ],
-      "x": 1050,
-      "y": 130,
-      "wires": [
-          [
-              "c60fae206ec525be"
-          ]
-      ]
-  },
-  {
-      "id": "c60fae206ec525be",
-      "type": "mqtt out",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Config OUT",
-      "topic": "torneira/config/out",
-      "qos": "0",
-      "retain": "false",
-      "respTopic": "",
-      "contentType": "",
-      "userProps": "",
-      "correl": "",
-      "expiry": "",
-      "broker": "b92ab025a2e6578a",
-      "x": 1280,
-      "y": 100,
-      "wires": []
-  },
-  {
-      "id": "0d174e6ccada76ee",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug config",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "payload",
-      "targetType": "msg",
-      "x": 790,
-      "y": 40,
-      "wires": []
-  },
-  {
-      "id": "2f2e0c13c09cdf15",
-      "type": "mqtt in",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "RFID IN",
-      "topic": "torneira/rfid/in",
-      "qos": "0",
-      "datatype": "json",
-      "broker": "b92ab025a2e6578a",
-      "nl": false,
-      "rap": true,
-      "rh": 0,
-      "inputs": 0,
-      "x": 110,
-      "y": 260,
-      "wires": [
-          [
-              "8508ad68b1cbd11a"
-          ]
-      ]
-  },
-  {
-      "id": "8508ad68b1cbd11a",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Mover RFID",
-      "rules": [
-          {
-              "t": "set",
-              "p": "queryParameters.rfid",
-              "pt": "msg",
-              "to": "payload.rfid",
-              "tot": "msg"
-          }
-      ],
-      "x": 310,
-      "y": 260,
-      "wires": [
-          [
-              "bdf8c69791f393c0"
-          ]
-      ]
-  },
-  {
-      "id": "bdf8c69791f393c0",
-      "type": "postgresql",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Buscar vínculo do copo",
-      "query": "SELECT\n  v.id AS id_vinculo,\n  v.id_cliente,\n  v.id_copo,\n  COALESCE(v.bonus_total, 0) AS bonus_total\nFROM vinculo_copo_cliente v\nJOIN copos c ON c.id = v.id_copo\nWHERE regexp_replace(upper(c.rfid), '[^0-9A-F]', '', 'g')\n    = regexp_replace(upper($rfid::text), '[^0-9A-F]', '', 'g')\n  AND v.ativo = true\n  AND c.status = 'em_uso'\nORDER BY v.data_vinculo DESC NULLS LAST, v.id DESC\nLIMIT 1;",
-      "postgreSQLConfig": "29d1cbb4d2da9490",
-      "split": false,
-      "rowsPerMsg": 1,
-      "outputs": 1,
-      "x": 550,
-      "y": 260,
-      "wires": [
-          [
-              "3889fa7ff71fa277",
-              "a160f69156265655"
-          ]
-      ]
-  },
-  {
-      "id": "3889fa7ff71fa277",
-      "type": "switch",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Copo autorizado?",
-      "property": "payload",
-      "propertyType": "msg",
-      "rules": [
-          {
-              "t": "empty"
-          },
-          {
-              "t": "nempty"
-          }
-      ],
-      "checkall": "true",
-      "repair": false,
-      "outputs": 2,
-      "x": 790,
-      "y": 260,
-      "wires": [
-          [
-              "56898c153bab8213"
-          ],
-          [
-              "3d21908c9bf5cb56"
-          ]
-      ]
-  },
-  {
-      "id": "56898c153bab8213",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "RFID negado",
-      "rules": [
-          {
-              "t": "set",
-              "p": "payload",
-              "pt": "msg",
-              "to": "{   \"autorizado\": false,   \"rfid\": queryParameters.rfid,   \"id_vinculo\": 0,   \"id_cliente\": 0,   \"id_copo\": 0,   \"bonus_total\": 0 }",
-              "tot": "jsonata"
-          }
-      ],
-      "x": 1010,
-      "y": 230,
-      "wires": [
-          [
-              "06d99cb57502cba2"
-          ]
-      ]
-  },
-  {
-      "id": "3d21908c9bf5cb56",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "RFID autorizado",
-      "rules": [
-          {
-              "t": "set",
-              "p": "payload",
-              "pt": "msg",
-              "to": "{   \"autorizado\": true,   \"rfid\": queryParameters.rfid,   \"id_vinculo\": $exists(payload[0]) ? payload[0].id_vinculo : payload.id_vinculo,   \"id_cliente\": $exists(payload[0]) ? payload[0].id_cliente : payload.id_cliente,   \"id_copo\": $exists(payload[0]) ? payload[0].id_copo : payload.id_copo,   \"bonus_total\": $number($exists(payload[0]) ? payload[0].bonus_total : payload.bonus_total) }",
-              "tot": "jsonata"
-          }
-      ],
-      "x": 1020,
-      "y": 290,
-      "wires": [
-          [
-              "06d99cb57502cba2"
-          ]
-      ]
-  },
-  {
-      "id": "06d99cb57502cba2",
-      "type": "mqtt out",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "RFID OUT",
-      "topic": "torneira/rfid/out",
-      "qos": "0",
-      "retain": "false",
-      "respTopic": "",
-      "contentType": "",
-      "userProps": "",
-      "correl": "",
-      "expiry": "",
-      "broker": "b92ab025a2e6578a",
-      "x": 1250,
-      "y": 260,
-      "wires": []
-  },
-  {
-      "id": "a160f69156265655",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug rfid",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "payload",
-      "targetType": "msg",
-      "x": 770,
-      "y": 200,
-      "wires": []
-  },
-  {
-      "id": "bf31ff86e748c3f4",
-      "type": "mqtt in",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Consumo IN",
-      "topic": "torneira/consumo/in",
-      "qos": "0",
-      "datatype": "json",
-      "broker": "b92ab025a2e6578a",
-      "nl": false,
-      "rap": true,
-      "rh": 0,
-      "inputs": 0,
-      "x": 120,
-      "y": 430,
-      "wires": [
-          [
-              "20a10f7e924b469e",
-              "1b25f261a53ec5ab"
-          ]
-      ]
-  },
-  {
-      "id": "20a10f7e924b469e",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Mover dados consumo",
-      "rules": [
-          {
-              "t": "set",
-              "p": "queryParameters.id_torneira",
-              "pt": "msg",
-              "to": "payload.id_torneira",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.id_vinculo",
-              "pt": "msg",
-              "to": "payload.id_vinculo",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.id_cliente",
-              "pt": "msg",
-              "to": "payload.id_cliente",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.id_copo",
-              "pt": "msg",
-              "to": "payload.id_copo",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.bebida",
-              "pt": "msg",
-              "to": "payload.bebida",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.quantidade_ml",
-              "pt": "msg",
-              "to": "payload.quantidade_ml",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.valor_real",
-              "pt": "msg",
-              "to": "payload.valor_real",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.valor_pos_desconto",
-              "pt": "msg",
-              "to": "payload.valor_pos_desconto",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.bonus_restante",
-              "pt": "msg",
-              "to": "payload.bonus_restante",
-              "tot": "msg"
-          },
-          {
-              "t": "set",
-              "p": "queryParameters.desconto_usado",
-              "pt": "msg",
-              "to": "payload.desconto_usado",
-              "tot": "msg"
-          }
-      ],
-      "x": 350,
-      "y": 430,
-      "wires": [
-          [
-              "174012406af2a48f",
-              "0e225ed573c64837"
-          ]
-      ]
-  },
-  {
-      "id": "174012406af2a48f",
-      "type": "postgresql",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Salvar consumo e atualizar bônus",
-      "query": "WITH dados AS (\n  SELECT\n    $id_torneira::int AS id_bebida,\n    $id_vinculo::int AS id_vinculo,\n    $id_copo::int AS id_copo,\n    COALESCE($quantidade_ml::numeric, 0) AS quantidade_ml,\n    COALESCE($valor_real::numeric, 0) AS valor_real,\n    COALESCE($desconto_usado::numeric, 0) AS desconto_usado,\n    COALESCE($bonus_restante::numeric, 0) AS bonus_restante\n),\natualiza_bonus AS (\n  UPDATE vinculo_copo_cliente\n  SET bonus_total = GREATEST(ROUND((SELECT bonus_restante FROM dados), 2), 0)\n  WHERE id = (SELECT id_vinculo FROM dados)\n  RETURNING id, bonus_total\n),\ninsere_consumo AS (\n  INSERT INTO consumo_bebidas (\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n  )\n  SELECT\n    ROUND(quantidade_ml)::int,\n    ROUND(valor_real, 2),\n    ROUND(desconto_usado, 2),\n    id_vinculo,\n    id_bebida,\n    id_copo\n  FROM dados\n  RETURNING\n    id,\n    created_at,\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n)\nSELECT\n  true AS salvo,\n  i.id AS id_consumo,\n  i.quantidade_ml,\n  i.valor_real,\n  i.desconto AS desconto_usado,\n  GREATEST(i.valor_real - i.desconto, 0) AS valor_pos_desconto,\n  COALESCE(a.bonus_total, (SELECT bonus_restante FROM dados)) AS bonus_restante,\n  i.vinculo_copo_cliente,\n  i.id_bebida,\n  i.id_copo\nFROM insere_consumo i\nLEFT JOIN atualiza_bonus a ON a.id = i.vinculo_copo_cliente;",
-      "postgreSQLConfig": "29d1cbb4d2da9490",
-      "split": false,
-      "rowsPerMsg": 1,
-      "outputs": 1,
-      "x": 630,
-      "y": 430,
-      "wires": [
-          [
-              "f25d256c72d9f3e2",
-              "e8d2c7cc18597a39"
-          ]
-      ]
-  },
-  {
-      "id": "f25d256c72d9f3e2",
-      "type": "change",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Montar consumo OUT",
-      "rules": [
-          {
-              "t": "set",
-              "p": "payload",
-              "pt": "msg",
-              "to": "{   \"salvo\": true,   \"id_consumo\": $exists(payload[0]) ? payload[0].id_consumo : payload.id_consumo,   \"quantidade_ml\": $number($exists(payload[0]) ? payload[0].quantidade_ml : payload.quantidade_ml),   \"valor_real\": $number($exists(payload[0]) ? payload[0].valor_real : payload.valor_real),   \"desconto_usado\": $number($exists(payload[0]) ? payload[0].desconto_usado : payload.desconto_usado),   \"valor_pos_desconto\": $number($exists(payload[0]) ? payload[0].valor_pos_desconto : payload.valor_pos_desconto),   \"bonus_restante\": $number($exists(payload[0]) ? payload[0].bonus_restante : payload.bonus_restante) }",
-              "tot": "jsonata"
-          }
-      ],
-      "x": 910,
-      "y": 430,
-      "wires": [
-          [
-              "5d68f5c6715e0b97"
-          ]
-      ]
-  },
-  {
-      "id": "5d68f5c6715e0b97",
-      "type": "mqtt out",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "Consumo OUT",
-      "topic": "torneira/consumo/out",
-      "qos": "0",
-      "retain": "false",
-      "respTopic": "",
-      "contentType": "",
-      "userProps": "",
-      "correl": "",
-      "expiry": "",
-      "broker": "b92ab025a2e6578a",
-      "x": 1160,
-      "y": 430,
-      "wires": []
-  },
-  {
-      "id": "1b25f261a53ec5ab",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug consumo recebido",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "payload",
-      "targetType": "msg",
-      "x": 340,
-      "y": 500,
-      "wires": []
-  },
-  {
-      "id": "e8d2c7cc18597a39",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug consumo salvo",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "payload",
-      "targetType": "msg",
-      "x": 900,
-      "y": 500,
-      "wires": []
-  },
-  {
-      "id": "9d870ff69c8bdeb4",
-      "type": "inject",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "{   \"id_torneira\": 1,   \"id_vinculo\": 135,   \"id_cliente\": 1,   \"id_copo\": 5543,   \"bebida\": \"Brahma Duplo Malte\",   \"quantidade_ml\": 1000,   \"preco_litro\": 10.76,   \"valor_real\": 10.76,   \"valor_pos_desconto\": 0,   \"bonus_antes\": 0,   \"desconto_usado\": 0,   \"bonus_restante\": 0 }",
-      "payloadType": "json",
-      "x": 90,
-      "y": 360,
-      "wires": [
-          [
-              "c0eb814618766fa6",
-              "20a10f7e924b469e"
-          ]
-      ]
-  },
-  {
-      "id": "c0eb814618766fa6",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug 10",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "false",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 320,
-      "y": 360,
-      "wires": []
-  },
-  {
-      "id": "0e225ed573c64837",
-      "type": "debug",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "debug 11",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "payload",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 580,
-      "y": 360,
-      "wires": []
-  },
-  {
-      "id": "3f6b0a3231c2de0d",
-      "type": "inject",
-      "z": "ffaa1f7d0c3ffdfc",
-      "name": "",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "{   \"id_torneira\": 2,   \"id_vinculo\": 135,   \"id_cliente\": 1,   \"id_copo\": 5543,   \"bebida\": \"Blue Moon\",   \"quantidade_ml\": 500,   \"preco_litro\": 14.00,   \"valor_real\": 7.00,   \"valor_pos_desconto\": 7.00,   \"bonus_antes\": 0,   \"desconto_usado\": 0,   \"bonus_restante\": 0 }",
-      "payloadType": "json",
-      "x": 90,
-      "y": 560,
-      "wires": [
-          [
-              "20a10f7e924b469e"
-          ]
-      ]
-  },
-  {
-      "id": "b92ab025a2e6578a",
-      "type": "mqtt-broker",
-      "name": "MQTT Janks",
-      "broker": "mqtt.janks.dev.br",
-      "port": "8883",
-      "tls": "",
-      "clientid": "node-red-torneira-01",
-      "autoConnect": true,
-      "usetls": true,
-      "protocolVersion": "4",
-      "keepalive": "60",
-      "cleansession": true,
-      "autoUnsubscribe": true,
-      "birthTopic": "",
-      "birthQos": "0",
-      "birthPayload": "",
-      "birthMsg": {},
-      "closeTopic": "",
-      "closeQos": "0",
-      "closePayload": "",
-      "closeMsg": {},
-      "willTopic": "",
-      "willQos": "0",
-      "willPayload": "",
-      "willMsg": {},
-      "userProps": "",
-      "sessionExpiry": ""
-  },
-  {
-      "id": "29d1cbb4d2da9490",
-      "type": "postgreSQLConfig",
-      "name": "PostgreSQL supermercado",
-      "host": "postgresql.janks.dev.br",
-      "hostFieldType": "str",
-      "port": "5432",
-      "portFieldType": "num",
-      "database": "projeto_b",
-      "databaseFieldType": "str",
-      "ssl": "true",
-      "sslFieldType": "bool",
-      "applicationName": "",
-      "applicationNameType": "str",
-      "max": "10",
-      "maxFieldType": "num",
-      "idle": "1000",
-      "idleFieldType": "num",
-      "connectionTimeout": "10000",
-      "connectionTimeoutFieldType": "num",
-      "user": "iot",
-      "userFieldType": "str",
-      "password": "pepcon-garton",
-      "passwordFieldType": "str"
-  }
+    {
+        "id": "ffaa1f7d0c3ffdfc",
+        "type": "tab",
+        "label": "Torneira integrada",
+        "disabled": false,
+        "info": "Fluxos MQTT + PostgreSQL para torneira/dispenser"
+    },
+    {
+        "id": "ef98989e2d7b3eac",
+        "type": "mqtt in",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Config IN",
+        "topic": "torneira/config/in",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "b92ab025a2e6578a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 100,
+        "wires": [
+            [
+                "8ef463d57e3042d6"
+            ]
+        ]
+    },
+    {
+        "id": "8ef463d57e3042d6",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Mover id_torneira",
+        "rules": [
+            {
+                "t": "set",
+                "p": "queryParameters.id_torneira",
+                "pt": "msg",
+                "to": "payload.id_torneira",
+                "tot": "msg"
+            }
+        ],
+        "x": 330,
+        "y": 100,
+        "wires": [
+            [
+                "24c59f9d76ef19d0"
+            ]
+        ]
+    },
+    {
+        "id": "24c59f9d76ef19d0",
+        "type": "postgresql",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Buscar dados da torneira",
+        "query": "SELECT\n  id AS id_torneira,\n  bebidas AS bebida,\n  preco AS preco_litro,\n  link\nFROM torneira\nWHERE id = $id_torneira;",
+        "postgreSQLConfig": "1251550e75985b59",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 570,
+        "y": 100,
+        "wires": [
+            [
+                "f6a37a972135e9b4",
+                "0d174e6ccada76ee"
+            ]
+        ]
+    },
+    {
+        "id": "f6a37a972135e9b4",
+        "type": "switch",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Encontrou torneira?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "empty"
+            },
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 810,
+        "y": 100,
+        "wires": [
+            [
+                "a8b46a7780d50019"
+            ],
+            [
+                "6fc3857013574c78"
+            ]
+        ]
+    },
+    {
+        "id": "a8b46a7780d50019",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Config não encontrada",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"encontrado\": false, \"id_torneira\": 0, \"bebida\": \"\", \"preco_litro\": 0, \"link\": \"\"}",
+                "tot": "json"
+            }
+        ],
+        "x": 1060,
+        "y": 70,
+        "wires": [
+            [
+                "c60fae206ec525be"
+            ]
+        ]
+    },
+    {
+        "id": "6fc3857013574c78",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Montar config OUT",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\t\"encontrado\": true,\t\"id_torneira\": $exists(payload[0]) ? payload[0].id_torneira : payload.id_torneira,\t\"bebida\": $exists(payload[0]) ? payload[0].bebida : payload.bebida,\t\"preco_litro\": $number($exists(payload[0]) ? payload[0].preco_litro : payload.preco_litro),\t\"link\": $exists(payload[0]) ? payload[0].link : payload.link}",
+                "tot": "jsonata"
+            }
+        ],
+        "x": 1050,
+        "y": 130,
+        "wires": [
+            [
+                "c60fae206ec525be"
+            ]
+        ]
+    },
+    {
+        "id": "c60fae206ec525be",
+        "type": "mqtt out",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Config OUT",
+        "topic": "torneira/config/out",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b92ab025a2e6578a",
+        "x": 1280,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "0d174e6ccada76ee",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug config",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 790,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "2f2e0c13c09cdf15",
+        "type": "mqtt in",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "RFID IN",
+        "topic": "torneira/rfid/in",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "b92ab025a2e6578a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 110,
+        "y": 260,
+        "wires": [
+            [
+                "8508ad68b1cbd11a"
+            ]
+        ]
+    },
+    {
+        "id": "8508ad68b1cbd11a",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Mover RFID",
+        "rules": [
+            {
+                "t": "set",
+                "p": "queryParameters.rfid",
+                "pt": "msg",
+                "to": "payload.rfid",
+                "tot": "msg"
+            }
+        ],
+        "x": 310,
+        "y": 260,
+        "wires": [
+            [
+                "bdf8c69791f393c0"
+            ]
+        ]
+    },
+    {
+        "id": "bdf8c69791f393c0",
+        "type": "postgresql",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Buscar vínculo do copo",
+        "query": "SELECT\n  v.id AS id_vinculo,\n  v.id_cliente,\n  v.id_copo,\n  COALESCE(v.bonus_total, 0) AS bonus_total\nFROM vinculo_copo_cliente v\nJOIN copos c ON c.id = v.id_copo\nWHERE regexp_replace(upper(c.rfid), '[^0-9A-F]', '', 'g')\n    = regexp_replace(upper($rfid::text), '[^0-9A-F]', '', 'g')\n  AND v.ativo = true\n  AND c.status = 'em_uso'\nORDER BY v.data_vinculo DESC NULLS LAST, v.id DESC\nLIMIT 1;",
+        "postgreSQLConfig": "1251550e75985b59",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 550,
+        "y": 260,
+        "wires": [
+            [
+                "3889fa7ff71fa277",
+                "a160f69156265655"
+            ]
+        ]
+    },
+    {
+        "id": "3889fa7ff71fa277",
+        "type": "switch",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Copo autorizado?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "empty"
+            },
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 790,
+        "y": 260,
+        "wires": [
+            [
+                "56898c153bab8213"
+            ],
+            [
+                "3d21908c9bf5cb56"
+            ]
+        ]
+    },
+    {
+        "id": "56898c153bab8213",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "RFID negado",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{   \"autorizado\": false,   \"rfid\": queryParameters.rfid,   \"id_vinculo\": 0,   \"id_cliente\": 0,   \"id_copo\": 0,   \"bonus_total\": 0 }",
+                "tot": "jsonata"
+            }
+        ],
+        "x": 1010,
+        "y": 230,
+        "wires": [
+            [
+                "06d99cb57502cba2"
+            ]
+        ]
+    },
+    {
+        "id": "3d21908c9bf5cb56",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "RFID autorizado",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{   \"autorizado\": true,   \"rfid\": queryParameters.rfid,   \"id_vinculo\": $exists(payload[0]) ? payload[0].id_vinculo : payload.id_vinculo,   \"id_cliente\": $exists(payload[0]) ? payload[0].id_cliente : payload.id_cliente,   \"id_copo\": $exists(payload[0]) ? payload[0].id_copo : payload.id_copo,   \"bonus_total\": $number($exists(payload[0]) ? payload[0].bonus_total : payload.bonus_total) }",
+                "tot": "jsonata"
+            }
+        ],
+        "x": 1020,
+        "y": 290,
+        "wires": [
+            [
+                "06d99cb57502cba2"
+            ]
+        ]
+    },
+    {
+        "id": "06d99cb57502cba2",
+        "type": "mqtt out",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "RFID OUT",
+        "topic": "torneira/rfid/out",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b92ab025a2e6578a",
+        "x": 1250,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "a160f69156265655",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug rfid",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 770,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "bf31ff86e748c3f4",
+        "type": "mqtt in",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Consumo IN",
+        "topic": "torneira/consumo/in",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "b92ab025a2e6578a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 430,
+        "wires": [
+            [
+                "20a10f7e924b469e",
+                "1b25f261a53ec5ab"
+            ]
+        ]
+    },
+    {
+        "id": "20a10f7e924b469e",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Mover dados consumo",
+        "rules": [
+            {
+                "t": "set",
+                "p": "queryParameters.id_torneira",
+                "pt": "msg",
+                "to": "payload.id_torneira",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.id_vinculo",
+                "pt": "msg",
+                "to": "payload.id_vinculo",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.id_cliente",
+                "pt": "msg",
+                "to": "payload.id_cliente",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.id_copo",
+                "pt": "msg",
+                "to": "payload.id_copo",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.bebida",
+                "pt": "msg",
+                "to": "payload.bebida",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.quantidade_ml",
+                "pt": "msg",
+                "to": "payload.quantidade_ml",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.valor_real",
+                "pt": "msg",
+                "to": "payload.valor_real",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.valor_pos_desconto",
+                "pt": "msg",
+                "to": "payload.valor_pos_desconto",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.bonus_restante",
+                "pt": "msg",
+                "to": "payload.bonus_restante",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "queryParameters.desconto_usado",
+                "pt": "msg",
+                "to": "payload.desconto_usado",
+                "tot": "msg"
+            }
+        ],
+        "x": 350,
+        "y": 430,
+        "wires": [
+            [
+                "174012406af2a48f",
+                "0e225ed573c64837"
+            ]
+        ]
+    },
+    {
+        "id": "174012406af2a48f",
+        "type": "postgresql",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Salvar consumo e atualizar bônus",
+        "query": "WITH dados AS (\n  SELECT\n    $id_torneira::int AS id_bebida,\n    $id_vinculo::int AS id_vinculo,\n    $id_copo::int AS id_copo,\n    COALESCE($quantidade_ml::numeric, 0) AS quantidade_ml,\n    COALESCE($valor_real::numeric, 0) AS valor_real,\n    COALESCE($desconto_usado::numeric, 0) AS desconto_usado,\n    COALESCE($bonus_restante::numeric, 0) AS bonus_restante\n),\natualiza_bonus AS (\n  UPDATE vinculo_copo_cliente\n  SET bonus_total = GREATEST(ROUND((SELECT bonus_restante FROM dados), 2), 0)\n  WHERE id = (SELECT id_vinculo FROM dados)\n  RETURNING id, bonus_total\n),\ninsere_consumo AS (\n  INSERT INTO consumo_bebidas (\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n  )\n  SELECT\n    ROUND(quantidade_ml)::int,\n    ROUND(valor_real, 2),\n    ROUND(desconto_usado, 2),\n    id_vinculo,\n    id_bebida,\n    id_copo\n  FROM dados\n  RETURNING\n    id,\n    created_at,\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n)\nSELECT\n  true AS salvo,\n  i.id AS id_consumo,\n  i.quantidade_ml,\n  i.valor_real,\n  i.desconto AS desconto_usado,\n  GREATEST(i.valor_real - i.desconto, 0) AS valor_pos_desconto,\n  COALESCE(a.bonus_total, (SELECT bonus_restante FROM dados)) AS bonus_restante,\n  i.vinculo_copo_cliente,\n  i.id_bebida,\n  i.id_copo\nFROM insere_consumo i\nLEFT JOIN atualiza_bonus a ON a.id = i.vinculo_copo_cliente;",
+        "postgreSQLConfig": "1251550e75985b59",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 630,
+        "y": 430,
+        "wires": [
+            [
+                "f25d256c72d9f3e2",
+                "e8d2c7cc18597a39"
+            ]
+        ]
+    },
+    {
+        "id": "f25d256c72d9f3e2",
+        "type": "change",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Montar consumo OUT",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{   \"salvo\": true,   \"id_consumo\": $exists(payload[0]) ? payload[0].id_consumo : payload.id_consumo,   \"quantidade_ml\": $number($exists(payload[0]) ? payload[0].quantidade_ml : payload.quantidade_ml),   \"valor_real\": $number($exists(payload[0]) ? payload[0].valor_real : payload.valor_real),   \"desconto_usado\": $number($exists(payload[0]) ? payload[0].desconto_usado : payload.desconto_usado),   \"valor_pos_desconto\": $number($exists(payload[0]) ? payload[0].valor_pos_desconto : payload.valor_pos_desconto),   \"bonus_restante\": $number($exists(payload[0]) ? payload[0].bonus_restante : payload.bonus_restante) }",
+                "tot": "jsonata"
+            }
+        ],
+        "x": 910,
+        "y": 430,
+        "wires": [
+            [
+                "5d68f5c6715e0b97"
+            ]
+        ]
+    },
+    {
+        "id": "5d68f5c6715e0b97",
+        "type": "mqtt out",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Consumo OUT",
+        "topic": "torneira/consumo/out",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b92ab025a2e6578a",
+        "x": 1160,
+        "y": 430,
+        "wires": []
+    },
+    {
+        "id": "1b25f261a53ec5ab",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug consumo recebido",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 340,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "e8d2c7cc18597a39",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug consumo salvo",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 900,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "0e225ed573c64837",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug 11",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "9ab9e31ea4393476",
+        "type": "ui-form",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Form consumo manual",
+        "group": "manual_consumo_group",
+        "label": "Inserir consumo manual",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "ID bebida",
+                "key": "id_bebida",
+                "type": "number",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "ID vínculo copo-cliente",
+                "key": "id_vinculo",
+                "type": "number",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Quantidade em mL",
+                "key": "quantidade_ml",
+                "type": "number",
+                "required": true,
+                "rows": null
+            }
+        ],
+        "formValue": {
+            "id_bebida": "",
+            "id_vinculo": "",
+            "quantidade_ml": ""
+        },
+        "payload": "",
+        "submit": "Inserir consumo",
+        "cancel": "Limpar",
+        "resetOnSubmit": false,
+        "topic": "consumo_manual",
+        "topicType": "str",
+        "splitLayout": "",
+        "className": "",
+        "passthru": false,
+        "dropdownOptions": [],
+        "x": 120,
+        "y": 740,
+        "wires": [
+            [
+                "6eb4d53268d7b8dc"
+            ]
+        ]
+    },
+    {
+        "id": "6eb4d53268d7b8dc",
+        "type": "function",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Preparar dados com padrão",
+        "func": "const p = msg.payload || {};\n\n// ===============================\n// VALORES PADRÃO DO FORMULÁRIO\n// ===============================\nconst padrao = {\n    id_bebida: 1,\n    id_vinculo: 135,\n    quantidade_ml: 500\n};\n\n// Se algum campo vier vazio, usa o valor padrão\nfor (let campo in padrao) {\n    if (\n        p[campo] === undefined ||\n        p[campo] === null ||\n        p[campo] === \"\" ||\n        isNaN(Number(p[campo]))\n    ) {\n        p[campo] = padrao[campo];\n    }\n}\n\nmsg.queryParameters = {\n    id_bebida: Number(p.id_bebida),\n    id_vinculo: Number(p.id_vinculo),\n    quantidade_ml: Number(p.quantidade_ml)\n};\n\nmsg.payload = msg.queryParameters;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 740,
+        "wires": [
+            [
+                "79471a1147dece97",
+                "9d7e8b5aa7e56002"
+            ]
+        ]
+    },
+    {
+        "id": "79471a1147dece97",
+        "type": "postgresql",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Inserir consumo manual",
+        "query": "WITH entrada AS (\n  SELECT\n    CAST($id_bebida AS int) AS id_bebida,\n    CAST($id_vinculo AS int) AS id_vinculo,\n    COALESCE(CAST($quantidade_ml AS numeric), 0) AS quantidade_ml\n),\ndados_banco AS (\n  SELECT\n    e.id_bebida,\n    e.id_vinculo,\n    e.quantidade_ml,\n    v.id_copo,\n    COALESCE(v.bonus_total, 0)::numeric AS bonus_antes,\n    t.bebidas AS nome_bebida,\n    COALESCE(t.preco, 0)::numeric AS preco_litro\n  FROM entrada e\n  JOIN vinculo_copo_cliente v ON v.id = e.id_vinculo\n  JOIN torneira t ON t.id = e.id_bebida\n),\ncalculo AS (\n  SELECT\n    id_bebida,\n    id_vinculo,\n    id_copo,\n    quantidade_ml,\n    nome_bebida,\n    preco_litro,\n    bonus_antes,\n    ROUND((preco_litro * quantidade_ml / 1000.0), 2) AS valor_real\n  FROM dados_banco\n),\ncalculo_final AS (\n  SELECT\n    id_bebida,\n    id_vinculo,\n    id_copo,\n    quantidade_ml,\n    nome_bebida,\n    preco_litro,\n    bonus_antes,\n    valor_real,\n    LEAST(valor_real, bonus_antes) AS desconto_usado,\n    GREATEST(valor_real - LEAST(valor_real, bonus_antes), 0) AS valor_pos_desconto,\n    GREATEST(bonus_antes - LEAST(valor_real, bonus_antes), 0) AS bonus_restante\n  FROM calculo\n),\natualiza_bonus AS (\n  UPDATE vinculo_copo_cliente\n  SET bonus_total = ROUND((SELECT bonus_restante FROM calculo_final), 2)\n  WHERE id = (SELECT id_vinculo FROM calculo_final)\n  RETURNING id, bonus_total\n),\ninsere_consumo AS (\n  INSERT INTO consumo_bebidas (\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n  )\n  SELECT\n    ROUND(quantidade_ml)::int,\n    ROUND(valor_real, 2),\n    ROUND(desconto_usado, 2),\n    id_vinculo,\n    id_bebida,\n    id_copo\n  FROM calculo_final\n  RETURNING\n    id,\n    created_at,\n    quantidade_ml,\n    valor_real,\n    desconto,\n    vinculo_copo_cliente,\n    id_bebida,\n    id_copo\n)\nSELECT\n  true AS salvo,\n  i.id AS id_consumo,\n  i.created_at,\n  c.nome_bebida,\n  c.preco_litro,\n  c.bonus_antes,\n  i.quantidade_ml,\n  i.valor_real,\n  i.desconto AS desconto_usado,\n  c.valor_pos_desconto,\n  COALESCE(a.bonus_total, c.bonus_restante) AS bonus_restante,\n  i.vinculo_copo_cliente,\n  i.id_bebida,\n  i.id_copo\nFROM insere_consumo i\nJOIN calculo_final c ON c.id_vinculo = i.vinculo_copo_cliente\nLEFT JOIN atualiza_bonus a ON a.id = i.vinculo_copo_cliente;",
+        "postgreSQLConfig": "1251550e75985b59",
+        "split": false,
+        "rowsPerMsg": 1,
+        "outputs": 1,
+        "x": 660,
+        "y": 740,
+        "wires": [
+            [
+                "12f8f3ffc031eebc",
+                "c720085a686ca5f9"
+            ]
+        ]
+    },
+    {
+        "id": "12f8f3ffc031eebc",
+        "type": "function",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "Mensagem resultado",
+        "func": "let r = Array.isArray(msg.payload) ? msg.payload[0] : msg.payload;\n\nif (!r) {\n    msg.payload = \"Erro: consumo não inserido. Verifique se o ID da bebida e o ID do vínculo existem.\";\n    return msg;\n}\n\nmsg.payload =\n    \"Consumo inserido com sucesso! \" +\n    \"ID: \" + r.id_consumo +\n    \" | Bebida: \" + r.nome_bebida +\n    \" | Volume: \" + r.quantidade_ml + \" mL\" +\n    \" | Preço/L: R$ \" + Number(r.preco_litro).toFixed(2) +\n    \" | Bônus antes: R$ \" + Number(r.bonus_antes).toFixed(2) +\n    \" | Valor real: R$ \" + Number(r.valor_real).toFixed(2) +\n    \" | Desconto: R$ \" + Number(r.desconto_usado).toFixed(2) +\n    \" | Valor final: R$ \" + Number(r.valor_pos_desconto).toFixed(2) +\n    \" | Bônus restante: R$ \" + Number(r.bonus_restante).toFixed(2);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 930,
+        "y": 740,
+        "wires": [
+            [
+                "4ec3044dfbbc0d11"
+            ]
+        ]
+    },
+    {
+        "id": "4ec3044dfbbc0d11",
+        "type": "ui-text-input",
+        "z": "ffaa1f7d0c3ffdfc",
+        "group": "manual_consumo_group",
+        "name": "Status",
+        "label": "Status",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "topic": "status",
+        "topicType": "str",
+        "mode": "text",
+        "tooltip": "",
+        "delay": 300,
+        "passthru": false,
+        "sendOnDelay": false,
+        "sendOnBlur": false,
+        "sendOnEnter": false,
+        "className": "",
+        "clearable": false,
+        "sendOnClear": false,
+        "icon": "",
+        "iconPosition": "left",
+        "iconInnerPosition": "inside",
+        "x": 1160,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9d7e8b5aa7e56002",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug entrada manual",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "queryParameters",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 810,
+        "wires": []
+    },
+    {
+        "id": "c720085a686ca5f9",
+        "type": "debug",
+        "z": "ffaa1f7d0c3ffdfc",
+        "name": "debug consumo salvo",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 810,
+        "wires": []
+    },
+    {
+        "id": "b92ab025a2e6578a",
+        "type": "mqtt-broker",
+        "name": "MQTT Janks",
+        "broker": "mqtt.janks.dev.br",
+        "port": "8883",
+        "tls": "",
+        "clientid": "node-red-torneira-01",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "1251550e75985b59",
+        "type": "postgreSQLConfig",
+        "name": "PostgreSQL",
+        "host": "postgresql.janks.dev.br",
+        "hostFieldType": "str",
+        "port": "5432",
+        "portFieldType": "num",
+        "database": "projeto_b",
+        "databaseFieldType": "str",
+        "ssl": "true",
+        "sslFieldType": "bool",
+        "applicationName": "",
+        "applicationNameType": "str",
+        "max": "10",
+        "maxFieldType": "num",
+        "idle": "1000",
+        "idleFieldType": "num",
+        "connectionTimeout": "10000",
+        "connectionTimeoutFieldType": "num",
+        "user": "iot",
+        "userFieldType": "str",
+        "password": "pepcon-garton",
+        "passwordFieldType": "str"
+    },
+    {
+        "id": "manual_consumo_group",
+        "type": "ui-group",
+        "name": "Consumo manual",
+        "page": "a084863a077ef6e2",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "a084863a077ef6e2",
+        "type": "ui-page",
+        "name": "Consumo manual",
+        "ui": "5d7e6dd672ad1557",
+        "path": "/consumo-manual",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "manual_auto_theme_001",
+        "order": 2,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "5d7e6dd672ad1557",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "navigationStyle": "default",
+        "titleBarStyle": "default"
+    },
+    {
+        "id": "manual_auto_theme_001",
+        "type": "ui-theme",
+        "name": "Tema padrão",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094ce",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    }
 ]
