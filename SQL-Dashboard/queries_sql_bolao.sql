@@ -4,11 +4,15 @@
 
 -- Taxa de acerto geral
 SELECT
+  time_bucket('1 day', created_at) AS time,
   ROUND(
     100.0 * COUNT(*) FILTER (WHERE acertou) / NULLIF(COUNT(*) FILTER (WHERE acertou IS NOT NULL), 0),
     1
   ) AS "Taxa de Acerto Geral (%)"
-FROM bets;
+FROM bets
+WHERE $__timeFilter(created_at)
+GROUP BY time
+ORDER BY time ASC;
 
 -- Taxa de acerto por jogo
 SELECT
