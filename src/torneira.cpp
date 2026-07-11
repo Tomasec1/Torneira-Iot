@@ -74,7 +74,7 @@ const char* WIFI_SENHA = "4n1m4l5@))!!";
 const char* MQTT_HOST = "mqtt.janks.dev.br";
 const int MQTT_PORTA = 8883;
 
-const char* MQTT_CLIENT_ID = "torneira_01";
+const char* MQTT_CLIENT_ID = "torneira_01 ";
 const char* MQTT_USUARIO = "aula";
 const char* MQTT_SENHA = "zowmad-tavQez";
 
