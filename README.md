@@ -6,8 +6,8 @@
 |---|---|
 | Rafael Castro | 2211104 |
 | Luísa | 2210875 |
-| Tomás | [matrícula] |
-| Henrique | [matrícula] |
+| Tomás | 2310215 |
+| Henrique | 2211802|
 
 # 🚰 Torneira Inteligente — Sistema de Bolão
 
