@@ -5,7 +5,7 @@
 | Nome | Matrícula |
 |---|---|
 | Rafael Castro | 2211104 |
-| Luísa | [matrícula] |
+| Luísa | 2210875 |
 | Tomás | [matrícula] |
 | Henrique | [matrícula] |
 
