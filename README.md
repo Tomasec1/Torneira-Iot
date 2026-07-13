@@ -112,3 +112,8 @@ Dashboards em Grafana (queries em `SQL-Dashboard/queries_sql_bolao.sql`), com fi
 | Persistência | PostgreSQL |
 | Visualização | Dashboards Grafana |
 
+## Foto PCB
+<img width="627" height="405" alt="PCB_PCB_PCB_CircuitoReduzido_2026-07-08_2026-07-13" src="https://github.com/user-attachments/assets/b0e7cc54-c7fa-4830-bc97-f19055b58b3e" />
+
+
+
